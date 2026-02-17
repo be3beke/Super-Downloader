@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFetch | Media Downloader</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 StreamFetch</h1>
+        <p>Download video or audio from 100+ sites</p>
+        
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Paste link here (YouTube, TikTok, etc.)">
+            <button onclick="analyzeLink()" id="btnAnalyze">Analyze</button>
+        </div>
+
+        <div id="preview" class="hidden">
+            <img id="thumb" src="" alt="Thumbnail">
+            <h3 id="videoTitle"></h3>
+            <div class="actions">
+                <button class="dl-btn video" onclick="startDownload('video')">Download MP4</button>
+                <button class="dl-btn audio" onclick="startDownload('audio')">Extract MP3</button>
+            </div>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        async function analyzeLink() {
+            const url = document.querySelector('#urlInput').value;
+            if (!url) return alert("Please paste a link!");
+
+            document.getElementById('status').innerText = "Analyzing link...";
+            
+            const response = await fetch('/get-info', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ url })
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                document.getElementById('status').innerText = "Error: " + data.error;
+            } else {
+                document.getElementById('preview').classList.remove('hidden');
+                document.getElementById('thumb').src = data.thumbnail;
+                document.getElementById('videoTitle').innerText = data.title;
+                document.getElementById('status').innerText = "";
+            }
+        }
+
+        function startDownload(mode) {
+            const url = document.querySelector('#urlInput').value;
+            document.getElementById('status').innerText = "Processing... please wait.";
+            window.location.href = `/download?url=${encodeURIComponent(url)}&mode=${mode}`;
+        }
+    </script>
+</body>
+</html>
